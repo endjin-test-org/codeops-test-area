@@ -1,0 +1,59 @@
+name: update_nuget_dependencies
+on: 
+  workflow_dispatch:
+    inputs:
+      config_repo:
+        default: live
+        required: true
+        description: Sets the folder used as the root of the configuration repo
+      dry_run_mode:
+        default: 'false'
+        required: false
+        description: When true, the run will not apply any changes
+  schedule:
+    - cron: '0 */6 * * *'  # every 6 hours
+jobs:
+  update_nuget_dependencies:
+    runs-on: ubuntu-latest
+    name: Performs NuGet dependency updates for solutions in target orgs/repos
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Run update-nuget-package-dependencies.ps1
+        run: |
+          $psGallery = Get-PSRepository | Where-Object { $_.SourceLocation -eq "https://www.powershellgallery.com/api/v2" }
+          if (!$psGallery) {
+              Write-Host "Registering PSGallery"
+              Register-PSRepository -Default -InstallationPolicy Trusted
+              $psGallery = Get-PSRepository | Where-Object { $_.SourceLocation -eq "https://www.powershellgallery.com/api/v2" }
+          }
+          Install-Module powershell-yaml -Force -Scope CurrentUser -Repository $psGallery.Name
+
+          # process and validate the supplied config repo to use - default to 'live' if blank (e.g. not triggered via workflow_dispatch)
+          if ([string]::IsNullOrEmpty($env:CONFIG_REPO)) {
+            $env:CONFIG_REPO = 'live'
+          }
+          $repoPath = "repos/$($env:CONFIG_REPO)"
+          if (!(Test-Path $repoPath)) {
+            Write-Error "Could not find config repo path: $repoPath"
+            exit 1
+          }
+          
+          # process dry_run_mode flag, if specified
+          $dryRunMode = $null
+          $dryRunMode = [bool]::TryParse($env:DRYRUN_MODE, [ref]$dryRunMode) ? $dryRunMode : $false
+
+          ./codeops-scripts/update-nuget-package-dependencies.ps1 -ConfigDirectory $repoPath -WhatIf:$dryRunMode
+        shell: pwsh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPENDJINBOT_PRIVATE_KEY }}
+          GITHUB_APP_ID: ${{ secrets.DEPENDJINBOT_APP_ID }}
+          CONFIG_REPO: ${{ github.event.inputs.config_repo }}
+          DATALAKE_NAME: ${{ secrets.DATALAKE_NAME }}
+          DATALAKE_FILESYSTEM: ${{ secrets.DATALAKE_FILESYSTEM }}
+          DATALAKE_DIRECTORY: ${{ secrets.DATALAKE_DIRECTORY }}
+          DATALAKE_SASTOKEN: ${{ secrets.DATALAKE_SASTOKEN }}
+          DRYRUN_MODE: ${{ github.event.inputs.dry_run_mode }}
+          

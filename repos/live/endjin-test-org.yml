@@ -1,0 +1,12 @@
+repos:
+  - org: endjin-test-org
+    name:
+    - Marain.Operations
+    nugetDependencyUpdates:
+      enabled: true
+      checkOnly: false
+      solutionsDir: ./Solutions
+      versionLock: Major
+      exclusions: []
+      inclusions:
+      - Microsoft.Extensions.  
