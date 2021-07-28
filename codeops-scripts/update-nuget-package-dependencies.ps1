@@ -22,7 +22,7 @@ $here = Split-Path -Parent $PSCommandPath
 # Install other module dependencies
 $requiredModules = @(
     @{Name="Endjin.GitHubActions"; Version="1.0.3"}
-    @{Name="Endjin.CodeOps"; Version="0.2.7-beta0001" }
+    @{Name="Endjin.CodeOps"; Version="0.2.7-beta0003" }
 )
 $requiredModules | ForEach-Object {
     $name = $_.Name
@@ -160,7 +160,7 @@ function _main
             # Tries to generate an AppInstallationAccessToken for the current Org when running
             # as a GitHub App and the SSH_PRIVATE_KEY and GITHUB_APP_ID environment variables
             # have been set.  Otherwise interactive authentication will be attempted on-demand.
-            Connect-GitHubOrg
+            Connect-GitHubOrg -OrgName $orgName
 
             if (!$repo.ContainsKey("nugetDependencyUpdates") -or `
                     !$repo.nugetDependencyUpdates.ContainsKey("enabled") -or `
