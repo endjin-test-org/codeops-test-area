@@ -1,3 +1,21 @@
+#
+# This workflow uses dotnet-outdated to analyse the NuGet dependencies in solutions
+# across multiple organisations and repositories, based on certain filtering criteria.
+# e.g. version increment, package name etc.
+#
+# When updates are found the tool will make the required updates to the project files
+# and create a PR.
+#
+# The workflow is scheduled to run every 6 hours, which should be adequate for external
+# dependencies.
+#
+# For our own internal dependencies, we could update our existing release process to 
+# include triggering this workflow via a 'repository_dispatch' webhook.
+#
+# This workflow would then detect the new packages and update the solutions accordingly.
+# Where an existing PR is already open, this will be updated with the additional upgraded
+# packages.
+#
 name: update_nuget_dependencies
 on: 
   workflow_dispatch:
