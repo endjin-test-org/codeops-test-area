@@ -9,4 +9,15 @@ repos:
       versionLock: Major
       exclusions: []
       inclusions:
-      - Microsoft.Extensions.  
+      - Microsoft.Extensions.
+      - Corvus.
+  - org: endjin-test-org
+    name:
+    - Corvus.Testing
+    nugetDependencyUpdates:
+      enabled: true
+      checkOnly: false
+      solutionsDir: ./Solutions
+      versionLock: Major
+      exclusions: []
+      inclusions: []
