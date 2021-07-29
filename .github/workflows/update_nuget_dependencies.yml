@@ -24,7 +24,10 @@ jobs:
       - name: Run update-nuget-package-dependencies.ps1
         run: |
           dotnet tool install -g dotnet-outdated
-          
+
+          git config --global user.email "dependjinbot@endjin.com"
+          git config --global user.name "dependjinbot"
+
           $psGallery = Get-PSRepository | Where-Object { $_.SourceLocation -eq "https://www.powershellgallery.com/api/v2" }
           if (!$psGallery) {
               Write-Host "Registering PSGallery"
