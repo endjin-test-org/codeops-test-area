@@ -246,10 +246,12 @@ function _main
     $runResults | ConvertTo-Json -Depth 100 | Out-File $reportFile -Force
 
     # Upload JSON report to datalake
+    $sasTokenAsSecureString = [string]::IsNullOrEmpty($env:DATALAKE_SASTOKEN) ? `
+                                    $null : ($env:DATALAKE_SASTOKEN | ConvertTo-SecureString -AsPlainText)
     Publish-CodeOpsResultsToBlobStorage -StorageAccountName $env:DATALAKE_NAME `
                                         -ContainerName $env:DATALAKE_FILESYSTEM `
                                         -BlobPath "$($env:DATALAKE_DIRECTORY)/nuget_package_dependencies/raw" `
-                                        -SasToken ([string]::IsNullOrEmpty($env:DATALAKE_SASTOKEN) ? $null : $env:DATALAKE_SASTOKEN) `
+                                        -SasToken $sasTokenAsSecureString `
                                         -JsonFilePath $reportFile `
                                         -WhatIf:$WhatIf
 
