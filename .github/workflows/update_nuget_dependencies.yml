@@ -27,6 +27,8 @@ jobs:
 
           git config --global user.email "dependjinbot@endjin.com"
           git config --global user.name "dependjinbot"
+          $credentialHelperPath = Resolve-Path ./git-credential-helper.sh
+          git config --global credential.helper "/bin/bash $($credentialHelperPath.Path)"
 
           $psGallery = Get-PSRepository | Where-Object { $_.SourceLocation -eq "https://www.powershellgallery.com/api/v2" }
           if (!$psGallery) {
