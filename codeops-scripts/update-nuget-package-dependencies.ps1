@@ -22,7 +22,7 @@ $here = Split-Path -Parent $PSCommandPath
 # Install other module dependencies
 $requiredModules = @(
     @{Name="Endjin.GitHubActions"; Version="1.0.3"}
-    @{Name="Endjin.CodeOps"; Version="0.2.7-beta0003" }
+    @{Name="Endjin.CodeOps"; Version="0.2.7-beta0004" }
 )
 $requiredModules | ForEach-Object {
     $name = $_.Name
