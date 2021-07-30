@@ -1,6 +1,7 @@
 repos:
   # external dependencies - minor or patch updates only
   - org: endjin-test-org
+    description: External Dependencies
     name:
     - Corvus.Testing
     - Marain.Operations
@@ -15,6 +16,7 @@ repos:
 
   # internal dependencies - no version lock
   - org: endjin-test-org
+    description: Internal Dependencies
     name:
     - Corvus.Testing
     - Marain.Operations

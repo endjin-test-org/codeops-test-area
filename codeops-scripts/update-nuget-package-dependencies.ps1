@@ -52,7 +52,7 @@ function _logError
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ErrorRecord] $ErrorRecord,
+        [System.Management.Automation.ErrorRecord] $ErrorRecord,
 
         [Parameter(Mandatory=$true)]
         [string] $Message,
@@ -183,6 +183,7 @@ function _main
             foreach ($repoName in $repo.name) {
                 $outputFile = New-TemporaryFile
                 try {
+                    Write-Information "`n************`n** Processing $orgName/$repoName ($($repo.description))`n************`n"
                     $prUri = Update-Repo `
                                 -OrgName $orgName `
                                 -RepoName $repoName `
@@ -198,22 +199,43 @@ function _main
                                 -Verbose
 
                     # Extract the JSON output from dotnet-outdated
-                    $output = Get-Content -Raw $outputFile | ConvertFrom-Json -AsHashtable
+                    $output = Get-Content -Raw $outputFile | ConvertFrom-Json -Depth 100 -AsHashtable
 
-                    # Store the dotnet-outdated analysis report and the PR associated with any changes
-                    $results += @{
-                        "$orgName/$repoName" = @{
-                            report = $output
-                            pull_request = $prUri
+                    # Setup an entry for the repo if this is the first time we've processed it
+                    # The configuration allows for repositories to be analysed multiple times
+                    # using different criteria (e.g. to diffeentiate between internal vs external
+                    # dependencies)
+                    if ($null -ne $output -and ![string]::IsNullOrEmpty($prUri)) {
+                        if ("$orgName/$repoName" -notin $results.Keys) {
+                            $results += @{
+                                "$orgName/$repoName" = @{
+                                    reports = @()
+                                    pull_request = $null
+                                }
+                            }
                         }
-                     }
+                        # Store the dotnet-outdated analysis report and the PR associated with any changes
+                        $results["$orgName/$repoName"].reports += @{ 
+                            description = $repo.description
+                            report = $output
+                        }
+                        $results["$orgName/$repoName"].pull_request = $prUri
+                    }
+                    elseif ( ($null -eq $output -and ![string]::IsNullOrEmpty($prUri)) `
+                                -or ($null -ne $output -and [string]::IsNullOrEmpty($prUri))
+                    ) {
+                        throw "What happened here???"
+                    }
+                    else {
+                        Write-Information "No changes, no report"
+                    }
 
-                     # Update the counters in the runMetadata
-                     $runMetadata.repos_analysed++
-                     if ( !([string]::IsNullOrEmpty($prUri)) ) {
+                    # Update the counters in the runMetadata
+                    $runMetadata.repos_analysed++
+                    if ( !([string]::IsNullOrEmpty($prUri)) ) {
                         # Treat the presence of a PR as a signal that repo was updated
                         $runMetadata.repos_updated++
-                     }
+                    }
                 }
                 # Log any exceptions for the current repo, then continue on to the next
                 catch {
